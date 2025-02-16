@@ -2,8 +2,8 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\Shift;
-use Spbot\Models\Facility;
+use Spbot\models\Shift;
+use Spbot\models\Facility;
 
 class ShiftController extends Controller {
     public function __construct() {
@@ -62,7 +62,7 @@ class ShiftController extends Controller {
             'employee_id' => $this->user->id,
             'employer_id' => $facility->employer_id,
             'facility_id' => $facility->id,
-            'start_time' => date('Y-m-d H:i:s'),
+            'start_time' => date($_ENV['DB_DATETIME_FORMAT']),
             'hourly_rate' => $this->getHourlyRate($facility)
         ])->save();
         
@@ -84,7 +84,7 @@ class ShiftController extends Controller {
             return $this->view->renderError(404, 'Смена не найдена');
         }
         
-        $endTime = date('Y-m-d H:i:s');
+        $endTime = date($_ENV['DB_DATETIME_FORMAT']);
         $totalHours = round((strtotime($endTime) - strtotime($shift->start_time)) / 3600, 2);
         $totalAmount = round($totalHours * $shift->hourly_rate, 2);
         

@@ -21,8 +21,10 @@ class ApiController extends Controller {
         }
         
         $payload = JWT::decode($token);
-        if (!$payload) {
-            $this->jsonError('Invalid token', 401);
+        if (!$payload || 
+            (isset($payload['exp']) && $payload['exp'] < time()) || 
+            (time() - $payload['iat'] > $_ENV['AUTH_TOKEN_LIFETIME'])) {
+            $this->jsonError('Invalid or expired token', 401);
             exit;
         }
         

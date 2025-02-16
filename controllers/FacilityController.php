@@ -2,7 +2,7 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\Facility;
+use Spbot\models\Facility;
 
 class FacilityController extends Controller {
     public function __construct() {

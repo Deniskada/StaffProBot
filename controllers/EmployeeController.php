@@ -1,4 +1,10 @@
 <?php
+namespace Spbot\Controllers;
+
+use Spbot\Core\Controller;
+use Spbot\models\Employee;
+use Spbot\models\Shift;
+
 class EmployeeController extends Controller {
     private $employee;
     private $shift;
@@ -49,7 +55,7 @@ class EmployeeController extends Controller {
         $shiftData = [
             'employee_id' => $_SESSION['user']['employee_id'],
             'facility_id' => $data['facility_id'],
-            'start_time' => date('Y-m-d H:i:s'),
+            'start_time' => date($_ENV['DB_DATETIME_FORMAT']),
             'hourly_rate' => $rate['hourly_rate']
         ];
         

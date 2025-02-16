@@ -1,9 +1,9 @@
 <?php
-namespace Spbot\Controllers;
+namespace Spbot\controllers;
 
-use Spbot\Core\Controller;
-use Spbot\Core\PaymentGateway;
-use Spbot\Models\Payment;
+use Spbot\core\Controller;
+use Spbot\core\PaymentGateway;
+use Spbot\models\Payment;
 
 class PaymentController extends Controller {
     private $gateway;
@@ -85,16 +85,41 @@ class PaymentController extends Controller {
         $payment->fill([
             'status' => $status,
             'transaction_id' => $_POST['transaction_id'],
+            'completed_at' => $status === 'completed' ? date($_ENV['DB_DATETIME_FORMAT']) : null,
             'payment_data' => json_encode($_POST)
         ])->save();
         
         if ($status === 'completed') {
-            $subscription = \Spbot\Models\Subscription::find($payment->subscription_id);
+            $subscription = \Spbot\models\Subscription::find($payment->subscription_id);
             if ($subscription) {
-                $subscription->fill(['status' => 'active'])->save();
+                $subscription->fill([
+                    'status' => 'active',
+                    'activated_at' => date($_ENV['DB_DATETIME_FORMAT'])
+                ])->save();
             }
         }
         
         http_response_code(200);
+    }
+    
+    public function history() {
+        $startDate = $this->request->get('start_date');
+        $endDate = $this->request->get('end_date');
+        $employerId = $this->user->role === 'admin' ? null : $this->user->id;
+        
+        $payments = $this->user->role === 'admin'
+            ? Payment::findByDateRange($startDate, $endDate)
+            : Payment::findByDateRange($startDate, $endDate, $employerId);
+        
+        $stats = Payment::getStatisticsByDateRange($startDate, $endDate, $employerId);
+        
+        $this->view->render('payments/history', [
+            'payments' => $payments,
+            'stats' => $stats,
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]
+        ]);
     }
 } 

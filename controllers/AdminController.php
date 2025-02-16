@@ -2,10 +2,12 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\User;
-use Spbot\Models\Shift;
-use Spbot\Models\SystemLog;
-use Spbot\Models\Payment;
+use Spbot\models\User;
+use Spbot\models\Shift;
+use Spbot\models\SystemLog;
+use Spbot\models\Payment;
+use Spbot\models\Employee;
+use Spbot\models\Facility;
 
 class AdminController extends Controller {
     private $user;

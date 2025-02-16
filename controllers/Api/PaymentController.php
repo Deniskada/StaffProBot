@@ -33,7 +33,7 @@ class PaymentController extends ApiController {
         $payment->fill([
             'employer_id' => $this->user->id,
             'amount' => $plan->price,
-            'currency' => 'RUB',
+            'currency' => $_ENV['DEFAULT_CURRENCY'],
             'payment_method' => $data['payment_method'],
             'status' => 'pending'
         ]);
@@ -45,7 +45,7 @@ class PaymentController extends ApiController {
         // Получаем платежную ссылку от платежного шлюза
         $paymentUrl = $this->gateway->createPayment([
             'amount' => $plan->price,
-            'currency' => 'RUB',
+            'currency' => $_ENV['DEFAULT_CURRENCY'],
             'payment_id' => $payment->id,
             'description' => "Subscription to {$plan->name} plan"
         ]);

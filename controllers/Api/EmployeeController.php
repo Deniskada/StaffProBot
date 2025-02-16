@@ -41,7 +41,7 @@ class EmployeeController extends ApiController {
             'employee_id' => $this->user->id,
             'employer_id' => $facility->employer_id,
             'facility_id' => $facility->id,
-            'start_time' => date('Y-m-d H:i:s'),
+            'start_time' => date($_ENV['DATE_FORMAT']),
             'status' => 'active'
         ]);
         

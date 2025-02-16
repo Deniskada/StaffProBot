@@ -2,9 +2,9 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\Plan;
-use Spbot\Models\Subscription;
-use Spbot\Models\Payment;
+use Spbot\models\Plan;
+use Spbot\models\Subscription;
+use Spbot\models\Payment;
 
 class SubscriptionController extends Controller {
     public function __construct() {
@@ -75,7 +75,7 @@ class SubscriptionController extends Controller {
             'employer_id' => $this->user->id,
             'plan_id' => $plan->id,
             'payment_id' => $payment->id,
-            'start_date' => date('Y-m-d H:i:s'),
+            'start_date' => date($_ENV['DB_DATETIME_FORMAT']),
             'end_date' => $this->calculateEndDate($plan->duration),
             'auto_renew' => $this->request->post('auto_renew', false)
         ])->save();
@@ -129,6 +129,6 @@ class SubscriptionController extends Controller {
                 break;
         }
         
-        return $date->format('Y-m-d H:i:s');
+        return $date->format($_ENV['DB_DATETIME_FORMAT']);
     }
 } 

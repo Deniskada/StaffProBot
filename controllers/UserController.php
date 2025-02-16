@@ -2,7 +2,7 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\User;
+use Spbot\models\User;
 
 class UserController extends Controller {
     public function __construct() {

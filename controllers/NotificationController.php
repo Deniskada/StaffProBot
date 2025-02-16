@@ -2,7 +2,7 @@
 namespace Spbot\Controllers;
 
 use Spbot\Core\Controller;
-use Spbot\Models\Notification;
+use Spbot\models\Notification;
 
 class NotificationController extends Controller {
     public function __construct() {
@@ -33,7 +33,7 @@ class NotificationController extends Controller {
         
         $notification->fill([
             'status' => 'read',
-            'read_at' => date('Y-m-d H:i:s')
+            'read_at' => date($_ENV['DB_DATETIME_FORMAT'])
         ])->save();
         
         if ($this->request->isAjax()) {
@@ -49,7 +49,7 @@ class NotificationController extends Controller {
             'unread'
         ])->update([
             'status' => 'read',
-            'read_at' => date('Y-m-d H:i:s')
+            'read_at' => date($_ENV['DB_DATETIME_FORMAT'])
         ]);
         
         if ($this->request->isAjax()) {
