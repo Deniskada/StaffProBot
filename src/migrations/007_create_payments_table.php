@@ -7,6 +7,9 @@ class CreatePaymentsTable extends Migration {
     protected $table = 'payments';
     
     public function up() {
+        $paymentMethods = "'" . str_replace(",", "','", $_ENV['DB_ENUM_PAYMENT_METHODS']) . "'";
+        $paymentStatuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_PAYMENT_METHOD_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'employer_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NOT NULL",

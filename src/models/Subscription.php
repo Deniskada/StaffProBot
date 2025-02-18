@@ -1,7 +1,7 @@
 <?php
-namespace Spbot\models;
+namespace Spbot\Models;
 
-use Spbot\core\Model;
+use Spbot\Core\Model;
 
 class Subscription extends Model {
     protected $table = 'subscriptions';

@@ -7,6 +7,8 @@ class CreateSubscriptionsTable extends Migration {
     protected $table = 'subscriptions';
     
     public function up() {
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_SUBSCRIPTION_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'employer_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NOT NULL",

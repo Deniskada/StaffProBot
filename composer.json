@@ -13,9 +13,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Spbot\\": "src/",
-            "Spbot\\models\\": "src/models/",
-            "Spbot\\core\\": "src/core/"
+            "Spbot\\": "src/"
         }
     },
     "config": {

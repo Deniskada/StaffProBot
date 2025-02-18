@@ -7,6 +7,9 @@ class CreateShiftsTable extends Migration {
     protected $table = 'shifts';
     
     public function up() {
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_SHIFT_STATUSES']) . "'";
+        $paymentStatuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_PAYMENT_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'employee_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NOT NULL",

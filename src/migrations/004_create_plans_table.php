@@ -7,6 +7,9 @@ class CreatePlansTable extends Migration {
     protected $table = 'plans';
     
     public function up() {
+        $durations = "'" . str_replace(",", "','", $_ENV['DB_ENUM_PLAN_DURATIONS']) . "'";
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_PLAN_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'name' => "VARCHAR({$_ENV['DB_FIELD_NAME_LENGTH']}) NOT NULL",

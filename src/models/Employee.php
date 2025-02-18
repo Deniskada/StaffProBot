@@ -1,7 +1,7 @@
 <?php
-namespace Spbot\models;
+namespace Spbot\Models;
 
-use Spbot\core\Database;
+use Spbot\Core\Database;
 
 class Employee {
     private $db;

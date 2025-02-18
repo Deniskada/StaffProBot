@@ -7,6 +7,8 @@ class CreateFacilitiesTable extends Migration {
     protected $table = 'facilities';
     
     public function up() {
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_FACILITY_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'employer_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NOT NULL",

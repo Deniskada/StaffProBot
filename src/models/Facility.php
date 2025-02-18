@@ -1,7 +1,7 @@
 <?php
-namespace Spbot\models;
+namespace Spbot\Models;
 
-use Spbot\core\Model;
+use Spbot\Core\Model;
 
 class Facility extends Model {
     protected $table = 'facilities';

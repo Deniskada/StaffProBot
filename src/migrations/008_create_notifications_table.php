@@ -7,6 +7,9 @@ class CreateNotificationsTable extends Migration {
     protected $table = 'notifications';
     
     public function up() {
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_NOTIFICATION_STATUSES']) . "'";
+        $channels = "'" . str_replace(",", "','", $_ENV['DB_ENUM_NOTIFICATION_CHANNELS']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'user_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NOT NULL",

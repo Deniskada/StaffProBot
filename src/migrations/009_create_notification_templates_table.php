@@ -7,6 +7,8 @@ class CreateNotificationTemplatesTable extends Migration {
     protected $table = 'notification_templates';
     
     public function up() {
+        $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_TEMPLATE_STATUSES']) . "'";
+
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
             'name' => "VARCHAR({$_ENV['DB_FIELD_TEMPLATE_NAME_LENGTH']}) NOT NULL",

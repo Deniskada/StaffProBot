@@ -8,7 +8,7 @@ class MigrationManager {
     
     public function __construct() {
         $this->db = Database::getInstance();
-        $this->migrationsPath = ROOT_DIR . '/migrations';
+        $this->migrationsPath = APP_ROOT . '/src/Migrations';
         $this->createMigrationsTable();
     }
     
@@ -54,9 +54,17 @@ class MigrationManager {
     }
     
     private function runMigration($file, $migration, $batch) {
-        require_once $file;
+        echo "Trying to load migration: " . basename($file) . "\n";
+        $className = 'Spbot\\Migrations\\' . $this->getMigrationClassName(basename($file));
+        echo "Class to check: {$className}\n";
         
-        $className = 'Spbot\\Migrations\\' . str_replace('.php', '', basename($file));
+        if (!class_exists($className, false)) {
+            echo "Loading file: {$file}\n";
+            require_once $file;
+        } else {
+            echo "Class already exists, skipping load\n";
+        }
+        
         $instance = new $className();
         
         try {
@@ -77,6 +85,11 @@ class MigrationManager {
             $this->db->rollBack();
             throw new \Exception("Migration failed: {$migration}\n" . $e->getMessage());
         }
+    }
+    
+    private function getMigrationClassName($filename) {
+        $name = preg_replace('/^\d+_/', '', basename($filename, '.php'));
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $name)));
     }
     
     public function rollback() {
@@ -102,9 +115,12 @@ class MigrationManager {
     
     private function rollbackMigration($migration) {
         $file = $this->migrationsPath . '/' . $migration . '.php';
-        require_once $file;
+        $className = 'Spbot\\Migrations\\' . $this->getMigrationClassName($migration);
         
-        $className = 'Spbot\\Migrations\\' . str_replace('.php', '', $migration);
+        if (!class_exists($className, false)) {
+            require_once $file;
+        }
+        
         $instance = new $className();
         
         try {
