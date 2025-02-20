@@ -41,50 +41,42 @@ class MigrationManager {
         $batch = $this->getLastBatch() + 1;
         $count = 0;
         
-        foreach ($files as $file) {
-            $migration = basename($file, '.php');
-            
-            if (!in_array($migration, $executed)) {
-                $this->runMigration($file, $migration, $batch);
-                $count++;
+        $this->db->beginTransaction();
+        try {
+            foreach ($files as $file) {
+                $migration = basename($file, '.php');
+                
+                if (!in_array($migration, $executed)) {
+                    $this->runMigration($file, $migration, $batch);
+                    $count++;
+                }
             }
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
         }
         
         return $count;
     }
     
     private function runMigration($file, $migration, $batch) {
-        echo "Trying to load migration: " . basename($file) . "\n";
-        $className = 'Spbot\\Migrations\\' . $this->getMigrationClassName(basename($file));
-        echo "Class to check: {$className}\n";
+        $className = 'Spbot\\Migrations\\' . $this->getMigrationClassName($migration);
         
         if (!class_exists($className, false)) {
-            echo "Loading file: {$file}\n";
             require_once $file;
-        } else {
-            echo "Class already exists, skipping load\n";
         }
         
+        echo "Running migration: {$migration}\n";
         $instance = new $className();
         
-        try {
-            $this->db->beginTransaction();
-            
-            $instance->up();
-            
-            $this->db->insert($this->migrationsTable, [
-                'migration' => $migration,
-                'batch' => $batch,
-                'executed_at' => date($_ENV['DATE_FORMAT'])
-            ]);
-            
-            $this->db->commit();
-            echo "Migrated: {$migration}\n";
-            
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            throw new \Exception("Migration failed: {$migration}\n" . $e->getMessage());
-        }
+        $instance->up();
+        
+        $this->db->insert($this->migrationsTable, [
+            'migration' => $migration,
+            'batch' => $batch,
+            'executed_at' => date('Y-m-d H:i:s')
+        ]);
     }
     
     private function getMigrationClassName($filename) {
@@ -104,10 +96,17 @@ class MigrationManager {
             [$batch]
         );
         
-        $count = 0;
-        foreach ($migrations as $migration) {
-            $this->rollbackMigration($migration['migration']);
-            $count++;
+        $this->db->beginTransaction();
+        try {
+            $count = 0;
+            foreach ($migrations as $migration) {
+                $this->rollbackMigration($migration['migration']);
+                $count++;
+            }
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw new \Exception("Rollback failed: " . $e->getMessage());
         }
         
         return $count;
@@ -123,24 +122,15 @@ class MigrationManager {
         
         $instance = new $className();
         
-        try {
-            $this->db->beginTransaction();
-            
-            $instance->down();
-            
-            $this->db->delete(
-                $this->migrationsTable,
-                'migration = ?',
-                [$migration]
-            );
-            
-            $this->db->commit();
-            echo "Rolled back: {$migration}\n";
-            
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            throw new \Exception("Rollback failed: {$migration}\n" . $e->getMessage());
-        }
+        $instance->down();
+        
+        $this->db->delete(
+            $this->migrationsTable,
+            'migration = ?',
+            [$migration]
+        );
+        
+        echo "Rolled back: {$migration}\n";
     }
     
     private function getLastBatch() {

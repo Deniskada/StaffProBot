@@ -25,11 +25,16 @@ class CreateSystemLogsTable extends Migration {
         $this->addForeignKey(
             "system_logs_user_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'user_id',
-            "users(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_SET_NULL']}"
+            'users',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_SET_NULL']
         );
     }
     
     public function down() {
+        $this->dropIndex("system_logs_level_{$_ENV['DB_INDEX_PREFIX']}");
+        $this->dropIndex("system_logs_user_id_{$_ENV['DB_INDEX_PREFIX']}");
+        $this->dropIndex("system_logs_created_at_{$_ENV['DB_INDEX_PREFIX']}");
         $this->dropForeignKey("system_logs_user_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}");
         $this->dropTable();
     }

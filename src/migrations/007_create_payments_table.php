@@ -16,8 +16,8 @@ class CreatePaymentsTable extends Migration {
             'subscription_id' => "{$_ENV['DB_TYPE_FOREIGN_KEY']} NULL",
             'amount' => "DECIMAL({$_ENV['DB_FIELD_MONEY_SCALE']},{$_ENV['DB_FIELD_MONEY_PRECISION']}) NOT NULL",
             'currency' => "VARCHAR({$_ENV['DB_FIELD_CURRENCY_LENGTH']}) NOT NULL DEFAULT '{$_ENV['DEFAULT_CURRENCY']}'",
-            'payment_method' => "ENUM({$_ENV['DB_ENUM_PAYMENT_METHODS']}) NOT NULL",
-            'status' => "ENUM({$_ENV['DB_ENUM_PAYMENT_METHOD_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PAYMENT_METHOD_DEFAULT_STATUS']}'",
+            'payment_method' => "ENUM({$paymentMethods}) NOT NULL",
+            'status' => "ENUM({$paymentStatuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PAYMENT_METHOD_DEFAULT_STATUS']}'",
             'transaction_id' => "VARCHAR({$_ENV['DB_FIELD_TRANSACTION_ID_LENGTH']}) NULL",
             'payment_data' => 'JSON NULL',
             'created_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL",
@@ -31,12 +31,16 @@ class CreatePaymentsTable extends Migration {
         $this->addForeignKey(
             "payments_employer_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'employer_id',
-            "users(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_DELETE']}"
+            'users',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_DELETE']
         );
         $this->addForeignKey(
             "payments_subscription_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'subscription_id',
-            "subscriptions(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_SET_NULL']}"
+            'subscriptions',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_SET_NULL']
         );
     }
     

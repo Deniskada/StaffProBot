@@ -15,11 +15,11 @@ class CreatePlansTable extends Migration {
             'name' => "VARCHAR({$_ENV['DB_FIELD_NAME_LENGTH']}) NOT NULL",
             'description' => 'TEXT NULL',
             'price' => "DECIMAL({$_ENV['DB_FIELD_MONEY_SCALE']},{$_ENV['DB_FIELD_MONEY_PRECISION']}) NOT NULL",
-            'duration' => "ENUM({$_ENV['DB_ENUM_PLAN_DURATIONS']}) NOT NULL",
+            'duration' => "ENUM({$durations}) NOT NULL",
             'max_facilities' => 'INT UNSIGNED NOT NULL',
             'max_employees' => 'INT UNSIGNED NOT NULL',
             'features' => 'JSON NULL',
-            'status' => "ENUM({$_ENV['DB_ENUM_PLAN_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PLAN_DEFAULT_STATUS']}'",
+            'status' => "ENUM({$statuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PLAN_DEFAULT_STATUS']}'",
             'created_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL",
             'updated_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL"
         ]);

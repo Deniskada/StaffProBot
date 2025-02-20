@@ -13,37 +13,56 @@ class View {
         $this->data[$key] = $value;
     }
     
-    public function render($template, $data = []) {
-        $this->data = array_merge($this->data, $data);
+    public function render($name, $data = [], $isLayout = false) {
+        error_log("=== View Render Debug ===");
+        error_log("Original view name: " . $name);
         
-        // Извлекаем переменные для шаблона
-        extract($this->data);
+        // Не модифицируем имя view
+        $viewPath = $this->getViewPath($name);
         
-        // Начинаем буферизацию
+        error_log("Final view path: " . $viewPath);
+        
+        if (!file_exists($viewPath)) {
+            throw new \RuntimeException("View file not found: {$viewPath}");
+        }
+        
+        // Ограничиваем глубину рекурсии для layout
+        if (!$isLayout && !empty($data['layout'])) {
+            $content = $this->renderFile($viewPath, $data);
+            $layoutData = array_merge($data, ['content' => $content]);
+            return $this->render($data['layout'], $layoutData, true);
+        }
+        
+        return $this->renderFile($viewPath, $data);
+    }
+    
+    protected function renderFile($path, $data) {
+        // Очищаем буфер перед рендерингом
+        if (ob_get_level()) ob_end_clean();
+        
         ob_start();
-        
-        $templatePath = dirname(__DIR__) . '/' . $_ENV['VIEWS_PATH'] . '/' . $template . '.php';
-        if (!file_exists($templatePath)) {
-            throw new \Exception("Template not found: {$template}");
+        try {
+            extract($data);
+            include $path;
+            return ob_get_clean();
+        } catch (\Exception $e) {
+            ob_end_clean();
+            error_log("View render error: " . $e->getMessage());
+            throw $e;
         }
+    }
+    
+    protected function getViewPath($name) {
+        error_log("=== getViewPath Debug ===");
+        error_log("Looking for view: " . $name);
         
-        // Подключаем шаблон
-        require $templatePath;
+        // Полный путь к файлу представления
+        $viewPath = APP_ROOT . '/resources/views/' . $name . '.php';
         
-        // Получаем содержимое шаблона
-        $content = ob_get_clean();
+        error_log("Checking path: " . $viewPath);
+        error_log("Found at: " . ($viewPath));
         
-        // Подключаем layout, если он есть
-        if ($this->layout) {
-            $layoutPath = dirname(__DIR__) . '/' . $_ENV['VIEWS_PATH'] . '/layouts/' . $this->layout . '.php';
-            if (!file_exists($layoutPath)) {
-                throw new \Exception("Layout not found: {$this->layout}");
-            }
-            
-            require $layoutPath;
-        } else {
-            echo $content;
-        }
+        return $viewPath;
     }
     
     public function renderPartial($template, $data = []) {

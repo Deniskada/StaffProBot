@@ -26,6 +26,17 @@ class Logger {
     }
     
     private function log($level, $message, $context = []) {
+        static $lineCount = 0;
+        $lineCount++;
+        
+        if ($lineCount > 3047) {
+            $timestamp = date('d-M-Y H:i:s e');
+            $logMessage = "[$timestamp] $message" . PHP_EOL;
+            
+            // Записываем в файл только после 3047 строки
+            file_put_contents($this->logFile, $logMessage, FILE_APPEND);
+        }
+        
         $data = [
             'level' => $level,
             'message' => $message,

@@ -130,4 +130,12 @@ abstract class Controller {
         
         return $data;
     }
+    
+    protected function view($name, $data = []) {
+        error_log("=== Core View Debug ===");
+        error_log("View name: " . $name);
+        
+        // Проверяем, не происходит ли здесь преобразование
+        return $this->view->render($name, $data);
+    }
 } 

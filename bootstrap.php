@@ -1,22 +1,42 @@
 <?php
+// В начале файла
+error_log("=== Starting Application Bootstrap ===");
+error_log("Current working directory: " . getcwd());
+error_log("Script path: " . __FILE__);
+
 // Определяем корневую директорию приложения
 define('APP_ROOT', dirname(__FILE__));
+error_log("APP_ROOT set to: " . APP_ROOT);
+
+// Проверяем наличие и права доступа к .env
+$envPath = APP_ROOT . '/.env';
+error_log("Checking .env at: " . $envPath);
+error_log("File exists: " . (file_exists($envPath) ? "YES" : "NO"));
+if (file_exists($envPath)) {
+    error_log("File permissions: " . substr(sprintf('%o', fileperms($envPath)), -4));
+    error_log("File owner: " . posix_getpwuid(fileowner($envPath))['name']);
+}
 
 // Автозагрузка через composer
 require_once APP_ROOT . '/vendor/autoload.php';
 
-// Загрузка переменных окружения из .env
-$dotenv = Dotenv\Dotenv::createImmutable(APP_ROOT);
-$dotenv->load();
+use Spbot\Core\Environment;
 
-// Установка обработки ошибок
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Загружаем переменные окружения через наш класс
+Environment::load();
 
-// Установка временной зоны
-date_default_timezone_set($_ENV['TIMEZONE']);
+// Проверяем, что основные переменные загружены
+$criticalVars = ['DB_HOST', 'DB_DATABASE', 'DB_USERNAME'];
+foreach ($criticalVars as $var) {
+    error_log("Critical var {$var}: " . (empty($_ENV[$var]) ? "NOT SET" : "SET"));
+}
 
-// Проверка обязательных переменных окружения
+// Проверка обязательных переменных
+if (!Environment::get('CONFIG_PATH')) {
+    die('CONFIG_PATH not set in .env file');
+}
+
+// Проверяем обязательные переменные окружения
 $required_env_vars = [
     'DB_HOST',
     'DB_PORT',
@@ -26,6 +46,7 @@ $required_env_vars = [
     'APP_ENV',
     'APP_DEBUG',
     'APP_URL',
+    'APP_NAMESPACE',
     'MAIL_HOST',
     'MAIL_PORT',
     'MAIL_USERNAME',
@@ -138,6 +159,17 @@ $required_env_vars = [
     'DB_DATETIME_MYSQL_FORMAT',
     'DB_TIME_MYSQL_FORMAT'
 ];
+
+Environment::required($required_env_vars);
+
+// Установка обработки ошибок
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Установка временной зоны
+$timezone = Environment::get('TIMEZONE', 'Europe/Moscow');
+$timezone = trim($timezone, '"\'');
+date_default_timezone_set($timezone);
 
 foreach ($required_env_vars as $var) {
     if (!isset($_ENV[$var])) {

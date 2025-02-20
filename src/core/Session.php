@@ -2,29 +2,28 @@
 namespace Spbot\Core;
 
 class Session {
-    private static $instance = null;
-    
-    private function __construct() {
+    public function __construct() {
+        error_log("=== Session Constructor Debug ===");
+        error_log("Session status: " . session_status());
+        error_log("Session ID: " . session_id());
+        
         if (session_status() === PHP_SESSION_NONE) {
-            ini_set('session.gc_maxlifetime', $_ENV['SESSION_LIFETIME']);
-            session_set_cookie_params($_ENV['SESSION_LIFETIME']);
+            error_log("Starting new session");
             session_start();
         }
+        
+        error_log("Session data after init: " . print_r($_SESSION, true));
     }
     
-    public static function getInstance() {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+    public function get($key, $default = null) {
+        error_log("=== Session::get Debug ===");
+        error_log("Getting key: " . $key);
+        error_log("Value: " . print_r($_SESSION[$key] ?? $default, true));
+        return $_SESSION[$key] ?? $default;
     }
     
     public function set($key, $value) {
         $_SESSION[$key] = $value;
-    }
-    
-    public function get($key, $default = null) {
-        return $_SESSION[$key] ?? $default;
     }
     
     public function has($key) {
@@ -32,48 +31,47 @@ class Session {
     }
     
     public function remove($key) {
-        if (isset($_SESSION[$key])) {
-            unset($_SESSION[$key]);
-            return true;
-        }
-        return false;
+        unset($_SESSION[$key]);
     }
     
     public function clear() {
-        session_unset();
-        return session_destroy();
+        $_SESSION = [];
     }
     
-    public function regenerate() {
-        return session_regenerate_id(true);
-    }
-    
-    public function flash($key, $value = null) {
-        if ($value === null) {
-            $value = $this->get($key);
-            $this->remove($key);
-            return $value;
-        }
-        
-        $this->set($key, $value);
+    public function destroy() {
+        session_destroy();
+        $this->clear();
     }
     
     public function setUser($user) {
+        error_log("=== Session::setUser Debug ===");
+        error_log("Setting user data: " . print_r($user, true));
         $this->set('user', $user);
-        $this->regenerate();
+        error_log("Session after setUser: " . print_r($_SESSION, true));
     }
     
     public function getUser() {
+        error_log("=== Session::getUser Debug ===");
+        error_log("Raw session data: " . print_r($_SESSION, true));
+        error_log("User data in session: " . print_r($_SESSION['user'] ?? null, true));
         return $this->get('user');
     }
     
-    public function isAuthenticated() {
-        return $this->has('user');
+    public function removeUser() {
+        $this->remove('user');
     }
     
-    public function logout() {
-        $this->remove('user');
-        $this->regenerate();
-        $this->clear();
+    public function regenerate() {
+        session_regenerate_id(true);
+    }
+    
+    public function flash($key, $value) {
+        $_SESSION['_flash'][$key] = $value;
+    }
+    
+    public function getFlash($key, $default = null) {
+        $value = $_SESSION['_flash'][$key] ?? $default;
+        unset($_SESSION['_flash'][$key]);
+        return $value;
     }
 } 

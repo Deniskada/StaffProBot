@@ -19,8 +19,8 @@ class CreateShiftsTable extends Migration {
             'end_time' => 'DATETIME NULL',
             'break_duration' => 'INT UNSIGNED DEFAULT 0',  // В минутах
             'notes' => 'TEXT NULL',
-            'status' => "ENUM({$_ENV['DB_ENUM_SHIFT_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_SHIFT_DEFAULT_STATUS']}'",
-            'payment_status' => "ENUM({$_ENV['DB_ENUM_PAYMENT_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PAYMENT_DEFAULT_STATUS']}'",
+            'status' => "ENUM({$statuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_SHIFT_DEFAULT_STATUS']}'",
+            'payment_status' => "ENUM({$paymentStatuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_PAYMENT_DEFAULT_STATUS']}'",
             'hourly_rate' => "DECIMAL({$_ENV['DB_FIELD_MONEY_SCALE']},{$_ENV['DB_FIELD_MONEY_PRECISION']}) NOT NULL",
             'total_hours' => "DECIMAL({$_ENV['DB_FIELD_HOURS_SCALE']},{$_ENV['DB_FIELD_HOURS_PRECISION']}) NULL",
             'total_amount' => "DECIMAL({$_ENV['DB_FIELD_MONEY_SCALE']},{$_ENV['DB_FIELD_MONEY_PRECISION']}) NULL",
@@ -35,17 +35,23 @@ class CreateShiftsTable extends Migration {
         $this->addForeignKey(
             "shifts_employee_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'employee_id',
-            "users(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_DELETE']}"
+            'users',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_DELETE']
         );
         $this->addForeignKey(
             "shifts_employer_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'employer_id',
-            "users(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_DELETE']}"
+            'users',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_DELETE']
         );
         $this->addForeignKey(
             "shifts_facility_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'facility_id',
-            "facilities(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_DELETE']}"
+            'facilities',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_DELETE']
         );
     }
     

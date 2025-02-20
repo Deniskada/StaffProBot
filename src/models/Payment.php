@@ -83,11 +83,8 @@ class Payment extends Model {
         return $payment->db->fetchAll($sql);
     }
 
-    public function create($amount, $currency = null) {
-        $this->amount = $amount;
-        $this->currency = $currency ?? $_ENV['DEFAULT_CURRENCY'];
-        $this->created_at = date($_ENV['DB_DATETIME_FORMAT']);
-        // ...
+    public static function create($data) {
+        return parent::create($data);
     }
 
     public static function findByEmployer($employerId) {
@@ -207,5 +204,50 @@ class Payment extends Model {
     public function getFormattedPaymentMethod() {
         $envKey = 'PAYMENT_METHOD_' . strtoupper(str_replace('-', '_', $this->payment_method));
         return $_ENV[$envKey] ?? $this->payment_method;
+    }
+
+    public static function sum($field, $conditions = null, $params = []) {
+        $db = static::getDB();
+        $table = (new static)->table;
+        
+        $sql = "SELECT SUM({$field}) as total FROM {$table}";
+        if ($conditions) {
+            $sql .= " WHERE {$conditions}";
+        }
+        
+        $result = $db->fetch($sql, $params);
+        return (float)($result['total'] ?? 0);
+    }
+
+    public static function countPending() {
+        return self::count("status = 'pending'");
+    }
+    
+    public static function countCompleted() {
+        return self::count("status = 'completed'");
+    }
+    
+    public static function getRecentPayments($limit = 5) {
+        $db = static::getDB();
+        $table = (new static)->table;
+        
+        return $db->fetchAll(
+            "SELECT * FROM {$table} ORDER BY created_at DESC LIMIT ?",
+            [$limit]
+        );
+    }
+    
+    public static function getTotalRevenue($period = 'all') {
+        $conditions = "status = 'completed'";
+        
+        if ($period === 'today') {
+            $conditions .= " AND DATE(created_at) = CURDATE()";
+        } elseif ($period === 'month') {
+            $conditions .= " AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+        } elseif ($period === 'year') {
+            $conditions .= " AND YEAR(created_at) = YEAR(CURDATE())";
+        }
+        
+        return self::sum('amount', $conditions);
     }
 } 

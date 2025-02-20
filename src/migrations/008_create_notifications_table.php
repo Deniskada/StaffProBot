@@ -8,7 +8,7 @@ class CreateNotificationsTable extends Migration {
     
     public function up() {
         $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_NOTIFICATION_STATUSES']) . "'";
-        $channels = "'" . str_replace(",", "','", $_ENV['DB_ENUM_NOTIFICATION_CHANNELS']) . "'";
+        $channels = "'" . str_replace(",", "','", $_ENV['DB_SET_NOTIFICATION_CHANNELS']) . "'";
 
         $this->createTable([
             'id' => "{$_ENV['DB_TYPE_PRIMARY_KEY']} AUTO_INCREMENT PRIMARY KEY",
@@ -17,8 +17,8 @@ class CreateNotificationsTable extends Migration {
             'title' => "VARCHAR({$_ENV['DB_FIELD_NOTIFICATION_TITLE_LENGTH']}) NOT NULL",
             'message' => 'TEXT NOT NULL',
             'data' => 'JSON NULL',
-            'status' => "ENUM({$_ENV['DB_ENUM_NOTIFICATION_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_NOTIFICATION_DEFAULT_STATUS']}'",
-            'sent_via' => "SET({$_ENV['DB_ENUM_NOTIFICATION_CHANNELS']}) NOT NULL",
+            'status' => "ENUM({$statuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_NOTIFICATION_DEFAULT_STATUS']}'",
+            'sent_via' => "SET({$channels}) NOT NULL",
             'read_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NULL",
             'created_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL",
             'updated_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL"
@@ -31,7 +31,9 @@ class CreateNotificationsTable extends Migration {
         $this->addForeignKey(
             "notifications_user_id_{$_ENV['DB_FOREIGN_KEY_PREFIX']}",
             'user_id',
-            "users(id) ON DELETE {$_ENV['DB_FOREIGN_KEY_ACTION_DELETE']}"
+            'users',
+            'id',
+            $_ENV['DB_FOREIGN_KEY_ACTION_DELETE']
         );
     }
     

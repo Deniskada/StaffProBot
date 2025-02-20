@@ -7,6 +7,8 @@ class CreateNotificationTemplatesTable extends Migration {
     protected $table = 'notification_templates';
     
     public function up() {
+        $this->beginTransaction();
+        
         $statuses = "'" . str_replace(",", "','", $_ENV['DB_ENUM_TEMPLATE_STATUSES']) . "'";
 
         $this->createTable([
@@ -18,7 +20,7 @@ class CreateNotificationTemplatesTable extends Migration {
             'telegram_body' => 'TEXT NULL',
             'web_body' => 'TEXT NULL',
             'variables' => 'JSON NULL',
-            'status' => "ENUM({$_ENV['DB_ENUM_TEMPLATE_STATUSES']}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_TEMPLATE_DEFAULT_STATUS']}'",
+            'status' => "ENUM({$statuses}) NOT NULL DEFAULT '{$_ENV['DB_ENUM_TEMPLATE_DEFAULT_STATUS']}'",
             'created_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL",
             'updated_at' => "{$_ENV['DB_TYPE_TIMESTAMP']} NOT NULL"
         ]);
@@ -52,9 +54,13 @@ class CreateNotificationTemplatesTable extends Migration {
         foreach ($templates as $template) {
             $this->insert($template);
         }
+        
+        $this->commit();
     }
     
     public function down() {
+        $this->beginTransaction();
         $this->dropTable();
+        $this->commit();
     }
 } 

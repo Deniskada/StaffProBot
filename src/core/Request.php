@@ -7,6 +7,7 @@ class Request {
     private $server;
     private $files;
     private $headers;
+    private $action;
     
     public function __construct() {
         $this->get = $_GET;
@@ -14,6 +15,15 @@ class Request {
         $this->server = $_SERVER;
         $this->files = $_FILES;
         $this->headers = $this->getHeaders();
+    }
+    
+    public function setAction($action) {
+        $this->action = $action;
+        return $this;
+    }
+    
+    public function getAction() {
+        return $this->action;
     }
     
     public function get($key = null, $default = null) {
@@ -51,7 +61,10 @@ class Request {
     }
     
     public function isPost() {
-        return $this->method() === 'POST';
+        error_log("=== isPost() Debug ===");
+        error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+        error_log("Checking if POST: " . ($_SERVER['REQUEST_METHOD'] === 'POST' ? 'true' : 'false'));
+        return $_SERVER['REQUEST_METHOD'] === 'POST';
     }
     
     public function isPut() {
@@ -63,7 +76,10 @@ class Request {
     }
     
     public function isAjax() {
-        return $this->header('X-Requested-With') === 'XMLHttpRequest';
+        error_log("=== isAjax() Debug ===");
+        error_log("HTTP_X_REQUESTED_WITH: " . ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? 'not set'));
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
     
     public function isJson() {

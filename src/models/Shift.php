@@ -1711,4 +1711,33 @@ class Shift extends Model {
             $params
         );
     }
+
+    public static function getAll() {
+        $db = static::getDB();
+        $sql = "SELECT s.*, f.name as facility_name 
+                FROM shifts s 
+                LEFT JOIN facilities f ON s.facility_id = f.id 
+                ORDER BY s.start_time DESC";
+        return $db->query($sql)->fetchAll();
+    }
+
+    public static function getAllByEmployer($employerId) {
+        $db = static::getDB();
+        $sql = "SELECT s.*, f.name as facility_name 
+                FROM shifts s 
+                LEFT JOIN facilities f ON s.facility_id = f.id 
+                WHERE s.employer_id = ? 
+                ORDER BY s.start_time DESC";
+        return $db->query($sql, [$employerId])->fetchAll();
+    }
+
+    public static function getAllByEmployee($employeeId) {
+        $db = static::getDB();
+        $sql = "SELECT s.*, f.name as facility_name 
+                FROM shifts s 
+                LEFT JOIN facilities f ON s.facility_id = f.id 
+                WHERE s.employee_id = ? 
+                ORDER BY s.start_time DESC";
+        return $db->query($sql, [$employeeId])->fetchAll();
+    }
 } 

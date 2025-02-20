@@ -2,7 +2,7 @@
 namespace Spbot\Core;
 
 abstract class Model {
-    protected $db;
+    protected static $db = null;
     protected $table;
     protected $primaryKey = 'id';
     protected $fillable = [];
@@ -10,7 +10,14 @@ abstract class Model {
     protected $timestamps = true;
     
     public function __construct() {
-        $this->db = Database::getInstance();
+        $this->db = self::getDB();
+    }
+    
+    public static function getDB() {
+        if (static::$db === null) {
+            static::$db = Database::getInstance();
+        }
+        return static::$db;
     }
     
     public function __get($name) {
@@ -34,7 +41,24 @@ abstract class Model {
         if (isset($this->attributes[$this->primaryKey])) {
             return $this->update();
         }
-        return $this->insert();
+        
+        if ($this->timestamps) {
+            $this->attributes['created_at'] = date('Y-m-d H:i:s');
+            $this->attributes['updated_at'] = date('Y-m-d H:i:s');
+        }
+        
+        $fields = array_keys($this->attributes);
+        $values = array_values($this->attributes);
+        $placeholders = str_repeat('?,', count($fields) - 1) . '?';
+        
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        
+        if ($this->db->query($sql, $values)) {
+            $this->attributes[$this->primaryKey] = $this->db->lastInsertId();
+            return true;
+        }
+        
+        return false;
     }
     
     protected function insert() {
@@ -91,17 +115,13 @@ abstract class Model {
     }
     
     public static function findBy($field, $value) {
-        $instance = new static();
-        $result = $instance->db->fetch(
-            "SELECT * FROM {$instance->table} WHERE {$field} = ?",
-            [$value]
-        );
+        $db = static::getDB();
+        $table = (new static)->table;
         
-        if (!$result) {
-            return null;
-        }
+        $sql = "SELECT * FROM {$table} WHERE {$field} = ?";
+        $result = $db->fetch($sql, [$value]);
         
-        return $instance->fill($result);
+        return $result ? new static($result) : null;
     }
     
     public static function all() {
@@ -110,22 +130,51 @@ abstract class Model {
     }
     
     public static function where($conditions, $params = []) {
-        $instance = new static();
-        return $instance->db->fetchAll(
-            "SELECT * FROM {$instance->table} WHERE {$conditions}",
-            $params
-        );
+        $db = static::getDB();
+        $table = (new static)->table;
+        
+        $sql = "SELECT * FROM {$table} WHERE {$conditions}";
+        return $db->fetchAll($sql, $params);
     }
     
-    public static function count($conditions = null, $params = []) {
+    /**
+     * Возвращает первую запись, соответствующую условиям
+     */
+    public static function first($conditions = null, $params = []) {
         $instance = new static();
-        $sql = "SELECT COUNT(*) as count FROM {$instance->table}";
+        $sql = "SELECT * FROM {$instance->table}";
         
         if ($conditions) {
             $sql .= " WHERE {$conditions}";
         }
         
-        $result = $instance->db->fetch($sql, $params);
-        return $result['count'];
+        $sql .= " LIMIT 1";
+        
+        if ($result = $instance->db->fetch($sql, $params)) {
+            return $instance->fill($result);
+        }
+        
+        return null;
+    }
+    
+    public static function count($conditions = null, $params = []) {
+        $db = static::getDB();
+        $table = (new static)->table;
+        
+        $sql = "SELECT COUNT(*) as count FROM {$table}";
+        if ($conditions) {
+            $sql .= " WHERE {$conditions}";
+        }
+        
+        $result = $db->fetch($sql, $params);
+        return (int)$result['count'];
+    }
+    
+    /**
+     * Создает новую запись в базе данных
+     */
+    public static function create($data) {
+        $model = new static();
+        return $model->fill($data)->save();
     }
 } 

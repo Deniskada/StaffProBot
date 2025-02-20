@@ -39,6 +39,10 @@ abstract class Migration {
     }
     
     protected function addIndex($name, $columns, $unique = false) {
+        if ($this->indexExists($name)) {
+            return true;
+        }
+        
         $type = $unique ? 'UNIQUE INDEX' : 'INDEX';
         $columns = is_array($columns) ? implode(', ', $columns) : $columns;
         
@@ -48,15 +52,26 @@ abstract class Migration {
     }
     
     protected function dropIndex($name) {
+        if (!$this->indexExists($name)) {
+            return true;
+        }
+        
         return $this->db->query(
             "ALTER TABLE {$this->table} DROP INDEX {$name}"
         );
     }
     
-    protected function addForeignKey($name, $column, $reference) {
+    protected function addForeignKey($name, $column, $referenceTable, $referenceField, $onDelete = 'RESTRICT') {
+        if ($this->foreignKeyExists($name)) {
+            return true;
+        }
+        
         return $this->db->query(
-            "ALTER TABLE {$this->table} ADD CONSTRAINT {$name} 
-            FOREIGN KEY ({$column}) REFERENCES {$reference}"
+            "ALTER TABLE {$this->table} 
+            ADD CONSTRAINT {$name} 
+            FOREIGN KEY ({$column}) 
+            REFERENCES {$referenceTable}({$referenceField})
+            ON DELETE {$onDelete}"
         );
     }
     
@@ -72,5 +87,41 @@ abstract class Migration {
     
     protected function delete($where, $params = []) {
         return $this->db->delete($this->table, $where, $params);
+    }
+    
+    protected function tableExists($table = null) {
+        $table = $table ?? $this->table;
+        $result = $this->db->fetch(
+            "SELECT COUNT(*) as count 
+             FROM information_schema.tables 
+             WHERE table_schema = ? AND table_name = ?",
+            [$_ENV['DB_DATABASE'], $table]
+        );
+        return $result['count'] > 0;
+    }
+    
+    protected function foreignKeyExists($name) {
+        $result = $this->db->fetch(
+            "SELECT COUNT(*) as count 
+             FROM information_schema.table_constraints 
+             WHERE table_schema = ? 
+             AND table_name = ? 
+             AND constraint_name = ? 
+             AND constraint_type = 'FOREIGN KEY'",
+            [$_ENV['DB_DATABASE'], $this->table, $name]
+        );
+        return $result['count'] > 0;
+    }
+    
+    protected function indexExists($name) {
+        $result = $this->db->fetch(
+            "SELECT COUNT(*) as count 
+             FROM information_schema.statistics 
+             WHERE table_schema = ? 
+             AND table_name = ? 
+             AND index_name = ?",
+            [$_ENV['DB_DATABASE'], $this->table, $name]
+        );
+        return $result['count'] > 0;
     }
 } 
